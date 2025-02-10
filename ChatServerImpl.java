@@ -23,9 +23,6 @@ public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
             clientMap.get(clientName).joined(name);
         }
 
-        for (String message : chatHistory) {
-            client.showMessage("History", message);
-        }
         return clientNames; 
     };
 
@@ -43,7 +40,10 @@ public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
     };
     public void sendMessage(String from, String message) throws RemoteException {
         String formattedMessage = from + ": " + message;
+
         chatHistory.add(formattedMessage);
+        System.out.println("Added to history: " + formattedMessage);
+
         for (String clientName : list()) {
             clientMap.get(clientName).showMessage(from, message);
             }

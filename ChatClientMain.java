@@ -1,5 +1,6 @@
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Scanner;
 
@@ -25,9 +26,10 @@ public class ChatClientMain {
                 System.out.println("No previous messages.");
             } else {
                 for (String message : chatHistory) {
-                    System.out.println(message.replace("History: ", ""));
-                }
+                    System.out.println(message.replaceFirst("(?i)^History:\\s*", "").trim()); 
+                }                
             }
+
             System.out.println("\n======================\n");
 
             ChatClient client = new ChatClientImpl(clientName);
@@ -43,6 +45,7 @@ public class ChatClientMain {
                 
                 if (message.equalsIgnoreCase("EXIT")) {
                     server.logout(clientName);
+                    UnicastRemoteObject.unexportObject(client, true);
                     System.out.println("You left the chat.");
                     break;
                 }
