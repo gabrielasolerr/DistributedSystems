@@ -1,5 +1,6 @@
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.List;
 import java.util.Scanner;
 
 public class ChatClientMain {
@@ -10,25 +11,31 @@ public class ChatClientMain {
         }
 
         try {
-            // Read arguments
             String serverHost = args[0];
             String chatRoom = args[1];
             String clientName = args[2];
 
-            // Locate the registry
             Registry registry = LocateRegistry.getRegistry(serverHost, 1100);
-            
-            // Lookup the chat server
             ChatServer server = (ChatServer) registry.lookup(chatRoom);
             
-            // Create and register the client
+            System.out.println("Requesting chat history...");
+            List<String> chatHistory = server.getChatHistory();
+            System.out.println("Chat history:" + chatHistory.size() + " messages");
+            
+            if (chatHistory.isEmpty()) {
+                System.out.println("No chat history available.");
+            } else {
+                for (String message : chatHistory) {
+                    System.out.println(message);
+                }
+            }
+
             ChatClient client = new ChatClientImpl(clientName);
             String[] users = server.login(client);
 
             System.out.println("Welcome to the chat, " + clientName + "!");
             System.out.println("Users online: " + String.join(", ", users));
-
-            // Chat loop
+            
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 System.out.print("> ");
