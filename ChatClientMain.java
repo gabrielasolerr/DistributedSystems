@@ -18,17 +18,17 @@ public class ChatClientMain {
             Registry registry = LocateRegistry.getRegistry(serverHost, 1100);
             ChatServer server = (ChatServer) registry.lookup(chatRoom);
             
-            System.out.println("Requesting chat history...");
             List<String> chatHistory = server.getChatHistory();
-            System.out.println("Chat history:" + chatHistory.size() + " messages");
+            System.out.println("\n==== Chat History ====\n");
             
             if (chatHistory.isEmpty()) {
-                System.out.println("No chat history available.");
+                System.out.println("No previous messages.");
             } else {
                 for (String message : chatHistory) {
-                    System.out.println(message);
+                    System.out.println(message.replace("History: ", ""));
                 }
             }
+            System.out.println("\n======================\n");
 
             ChatClient client = new ChatClientImpl(clientName);
             String[] users = server.login(client);
