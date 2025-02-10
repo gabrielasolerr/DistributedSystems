@@ -1,43 +1,46 @@
 import java.rmi.*;
-import java.rmi.registry.*;
-import java.rmi.server.*;
-import java.util.*;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
-    private List<ChatClient> clients;
-    private List<String> messageHistory;
+    private Map<String, ChatClient> clientMap = new HashMap<>();
 
     public ChatServerImpl() throws RemoteException {
-        clients = new ArrayList<>();
-        messageHistory = new ArrayList<>();
+        
     }
-
-    public synchronized void registerClient(ChatClient client) throws RemoteException {
-        clients.add(client);
-        System.out.println("New client joined: " + client.getName());
-        client.receiveMessage("Welcome to the chat!");
-    }
-
-    public synchronized void sendMessage(String message, ChatClient sender) throws RemoteException {
-        String formattedMessage = sender.getName() + ": " + message;
-        messageHistory.add(formattedMessage);
-        for (ChatClient client : clients) {
-            client.receiveMessage(formattedMessage);
+    public String[] login(ChatClient client) throws RemoteException {
+        String name = client.getName();
+        if (clientMap.containsKey(name)) {
+            throw new RuntimeException("Name already exists");
         }
-    }
-
-    public synchronized List<String> getMessageHistory() throws RemoteException {
-        return messageHistory;
-    }
-
-    public static void main(String[] args) {
-        try {
-            ChatServerImpl server = new ChatServerImpl();
-            Registry registry = LocateRegistry.createRegistry(1099);
-            registry.bind("ChatService", server);
-            System.out.println("Chat Server is running...");
-        } catch (Exception e) {
-            e.printStackTrace();
+        String [] clientNames = list();
+        clientMap.put(name, client);
+        for (String clientName : clientNames) {
+            clientMap.get(clientName).joined(name);
         }
-    }
+        return clientNames; 
+    };
+
+    public String[] list() {
+        return clientMap.keySet().toArray(new String[clientMap.size()]);
+    }; 
+    public void sendMessage(String from, String to, String message) throws RemoteException {
+        clientMap.get(to).showMessage(from, message);
+    };
+    public void sendMessage(String from, String message) throws RemoteException {
+        String [] clientNames = list();
+        for (String clientName : clientNames) {
+            sendMessage(from, clientName, message);
+            }
+    };
+
+    public void logout(String name) throws RemoteException {
+        clientMap.remove(name);
+        String [] clientNames = list();
+        for (String clientName : clientNames) {
+            clientMap.get(clientName).left(name);
+        }
+    };
+
 }

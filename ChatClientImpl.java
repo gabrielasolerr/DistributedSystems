@@ -1,43 +1,30 @@
-import java.rmi.*;
-import java.rmi.registry.*;
-import java.rmi.server.*;
-import java.util.Scanner;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 public class ChatClientImpl extends UnicastRemoteObject implements ChatClient {
     private String name;
-    private ChatServer server;
 
-    public ChatClientImpl(String name, ChatServer server) throws RemoteException {
+    public ChatClientImpl(String name) throws RemoteException {
         this.name = name;
-        this.server = server;
-        server.registerClient(this);
     }
 
-    public void receiveMessage(String message) throws RemoteException {
-        System.out.println(message);
+    @Override
+    public String getName() {
+        return this.name;
     }
 
-    public String getName() throws RemoteException {
-        return name;
+    @Override
+    public void joined(String name) {
+        System.out.println(name + " has joined the chat.");
     }
 
-    public static void main(String[] args) {
-        try {
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("Enter your name: ");
-            String name = scanner.nextLine();
+    @Override
+    public void left(String name) {
+        System.out.println(name + " has left the chat.");
+    }
 
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
-            ChatServer server = (ChatServer) registry.lookup("ChatService");
-
-            ChatClientImpl client = new ChatClientImpl(name, server);
-            
-            while (true) {
-                String message = scanner.nextLine();
-                server.sendMessage(message, client);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    @Override
+    public void showMessage(String from, String message) {
+        System.out.println(from + ": " + message);
     }
 }
